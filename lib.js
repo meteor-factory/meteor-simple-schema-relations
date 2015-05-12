@@ -42,7 +42,7 @@ var findManyById = function (collection, fieldName) {
 };
 
 Mongo.Collection.prototype.findAndJoin = function (selector, options) {
-	var cursor = this.find.apply(this, Array.prototype.slice.call(arguments));
+  var cursor = this.find.apply(this, Array.prototype.slice.call(arguments));
   var fields = getCursorJoins(cursor);
   
   return cursor.map(function (doc) {
