@@ -1,4 +1,4 @@
-Meteor.publishSchema = function (name, fn) {
+Meteor.publishAndJoin = function (name, fn) {
   Meteor.publishComposite(name, function () {
     var cursor = fn.apply(this, Array.prototype.slice.call(arguments));
     return {

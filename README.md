@@ -46,10 +46,10 @@ PostsSchema = new SimpleSchema({
 })
 ```
 
-That defined schema can be used to publish data from the server with `Meteor.publishSchema`, e.g:
+That defined schema can be used to publish data from the server with `Meteor.publishAndJoin`, e.g:
 
 ```
-Meteor.publishSchema('myPosts', function () {
+Meteor.publishAndJoin('myPosts', function () {
   return Posts.find({ owner: this.userId });
 });
 ```
@@ -57,7 +57,7 @@ Meteor.publishSchema('myPosts', function () {
 When you subscribe to this publication `owner` and `collaborators` documents will be automatically published by searching `Meteor.users` collection with `_id` field. If you don't want to publish some fields (like collabolators in following example), you can do it same way as with "ordinary" meteor publication, e.g:
 
 ```
-Meteor.publishSchema('myPosts', function () {
+Meteor.publishAndJoin('myPosts', function () {
   return Posts.find({ owner: this.userId }, { fields: { collabolators: 0 } });
 });
 ```
@@ -95,7 +95,7 @@ var myPosts = Posts.findAndJoin({ owner: Meteor.userId() });
 - [ ] Allow to specify the custom find method on schema and publication level
 - [ ] Extra join methods (`findByField`)
 - [ ] Think of better names
-  - [ ] Meteor.publishSchema -> Meteor.publishRelations || Meteor.publishAndJoin ??
+  - [x] Meteor.publishSchema -> Meteor.publishRelations || Meteor.publishAndJoin ??
   - [x] findById -> joinById ??
 - [ ] Custom `children` properties in publication method (see `reywood:publish-composite`)
 - [ ] Return "normal" cursor to have `count()` and `observe()` etc. (Low priority)
