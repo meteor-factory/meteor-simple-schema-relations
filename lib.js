@@ -21,7 +21,7 @@ getSimpleSchemaJoins = function (schema) {
 
     if (field.joinById && isString) {
       result.push({
-        name: name,
+        field: name,
         collection: field.joinById,
         isArray: ssFieldIsArray(field)
       });
@@ -41,54 +41,54 @@ getCursorJoins = function (cursor) {
   return getCollectionJoins(collection);
 };
 
-getOmitFields = function (fields) {
-  return _.reduce(fields, function (omit, include, field) {
-    if (! include) {
+shiftFields = function (fields) {
+  return _.reduce(fields, function (fields, value, field) {
+    if (typeof field === 'string') {
       var arr = field.split('.');
       var rest = _.rest(arr);
 
       if (rest.length > 0) {
-        if (! omit[arr[0]]) {
-          omit[arr[0]] = {};
+        if (! fields[arr[0]]) {
+          fields[arr[0]] = {};
         }
-        omit[arr[0]][rest.join('.')] = 0;
+        fields[arr[0]][rest.join('.')] = value;
       }
     }
-    return omit;
+    return fields;
   }, {});
 };
 
-getCursorOmitFields = function (cursor) {
+getCursorFields = function (cursor) {
   var fields = Meteor.isClient
                 ? cursor.fields
                 : cursor._cursorDescription.options.fields;
-  return getOmitFields(fields);
+  return shiftFields(fields);
 };
 
 Mongo.Collection.prototype.findAndJoin = function (selector, options) {
   var cursor = this.find.apply(this, Array.prototype.slice.call(arguments));
-  var fields = getCursorJoins(cursor);
-  var omitFields = getCursorOmitFields(cursor);
-  
-  return cursor.map(function (doc) {
-    _.each(fields, function (field) {
-      var value = doc[field.name];
-      var fields = omitFields[field.name];
+  var joins = getCursorJoins(cursor);
+  var cursorFields = getCursorFields(cursor);
 
-      if (field.isArray) {
+  return cursor.map(function (doc) {
+    _.each(joins, function (join) {
+      var value = doc[join.field];
+      var fields = cursorFields[join.field];
+
+      if (join.isArray) {
         if (! _.isArray(value)) {
           value = [value];
         }
 
-        doc[field.name] = field.collection.findAndJoin(
+        doc[join.field] = join.collection.findAndJoin(
                             { _id: { $in: value } },
                             { fields: fields });
       } else {
-        var findOneResult = field.collection.findAndJoin(
+        var findOneResult = join.collection.findAndJoin(
                               { _id: value }, 
                               { limit: 1, fields: fields });
         if (findOneResult.length == 1) {
-          doc[field.name] = findOneResult[0];
+          doc[join.field] = findOneResult[0];
         }
       }
     });

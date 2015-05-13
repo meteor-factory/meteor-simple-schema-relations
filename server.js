@@ -26,32 +26,32 @@ var findManyById = function (collection, fieldName, fields) {
   };
 };
 
-function compositeSchemaChildrenArray (cursorOrCollection, isCursor, omitFields) {
-  var fields = isCursor
+function compositeSchemaChildrenArray (cursorOrCollection, isCursor, cursorFields) {
+  var joins = isCursor
                 ? getCursorJoins(cursorOrCollection)
                 : getCollectionJoins(cursorOrCollection);
   var children = [];
 
-  if ((! omitFields) && isCursor) {
-    omitFields = getCursorOmitFields(cursorOrCollection);
+  if ((! cursorFields) && isCursor) {
+    cursorFields = getCursorFields(cursorOrCollection);
   }
 
-  _.each(fields, function (field) {
+  _.each(joins, function (join) {
     var compositeChildren = {};
     var fields;
 
-    if (omitFields && omitFields[field.name]) {
-      fields = omitFields[field.name];
+    if (cursorFields && cursorFields[join.field]) {
+      fields = cursorFields[join.field];
     }
 
-    if (field.isArray) {
-      compositeChildren.find = findManyById(field.collection, field.name, fields);
+    if (join.isArray) {
+      compositeChildren.find = findManyById(join.collection, join.field, fields);
     } else {
-      compositeChildren.find = findOneById(field.collection, field.name, fields);
+      compositeChildren.find = findOneById(join.collection, join.field, fields);
     }
 
     compositeChildren.children = compositeSchemaChildrenArray(
-                                  field.collection, false, getOmitFields(fields));
+                                  join.collection, false, shiftFields(fields));
     children.push(compositeChildren);
   });
 
