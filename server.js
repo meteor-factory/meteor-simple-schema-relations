@@ -1,11 +1,23 @@
 Meteor.publishAndJoin = function (name, fn) {
   Meteor.publishComposite(name, function () {
-    var cursor = fn.apply(this, Array.prototype.slice.call(arguments));
+    var cursorOrObject = fn.apply(this, Array.prototype.slice.call(arguments));
+    var cursor;
+    var children = [];
+
+    if (cursorOrObject && cursorOrObject._cursorDescription) {
+      cursor = cursorOrObject;
+    } else {
+      cursor = cursorOrObject.find();
+      if (_.isArray(cursorOrObject.children)) {
+        children = cursorOrObject.children;
+      }
+    }
+
     return {
       find: function () {
         return cursor;
       },
-      children: compositeSchemaChildrenArray(cursor, true)
+      children: _.union(compositeSchemaChildrenArray(cursor, true), children)
     }
   });
 };

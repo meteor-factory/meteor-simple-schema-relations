@@ -99,6 +99,6 @@ var myPosts = Posts.findAndJoin({ owner: Meteor.userId() });
 - [ ] Think of better names
   - [x] Meteor.publishSchema -> Meteor.publishRelations || Meteor.publishAndJoin ??
   - [x] findById -> joinById ??
-- [ ] Custom `children` properties in publication method (see `reywood:publish-composite`)
+- [x] Custom `children` properties in publication method (see `reywood:publish-composite`)
 - [ ] Return "normal" cursor to have `count()` and `observe()` etc. (Low priority)
 
