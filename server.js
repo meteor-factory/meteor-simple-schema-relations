@@ -44,6 +44,10 @@ function compositeSchemaChildrenArray (cursorOrCollection, isCursor, cursorField
       fields = cursorFields[join.field];
     }
 
+    if (fields && (fields['^'] === 0 || fields['^'] === false)) {
+      return;
+    }
+
     if (join.isArray) {
       compositeChildren.find = findManyById(join.collection, join.field, fields);
     } else {

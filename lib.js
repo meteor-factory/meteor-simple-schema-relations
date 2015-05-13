@@ -75,6 +75,10 @@ Mongo.Collection.prototype.findAndJoin = function (selector, options) {
       var value = doc[join.field];
       var fields = cursorFields[join.field];
 
+      if (fields && (fields['^'] === 0 || fields['^'] === false)) {
+        return doc;
+      }
+
       if (join.isArray) {
         if (! _.isArray(value)) {
           value = [value];
