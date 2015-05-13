@@ -12,10 +12,7 @@ var ssFieldIsString = function (field) {
           _.isString(field.type());
 };
 
-getCursorJoins = function (cursor) {
-  var collection = Mongo.Collection.get(cursor._getCollectionName());
-  var schema = collection._c2._simpleSchema._schema;
-
+getSimpleSchemaJoins = function (schema) {
   return _.reduce(schema, function (result, field, name) {
     var isArray = ssFieldIsArray(field) && (!! schema[name + '.$']);
     var isString = isArray
@@ -31,6 +28,17 @@ getCursorJoins = function (cursor) {
     }
     return result;
   }, []);
+};
+
+getCollectionJoins = function (collection) {
+  if (collection && collection._c2 && collection._c2._simpleSchema) {
+    return getSimpleSchemaJoins(collection._c2._simpleSchema._schema);
+  }
+}
+
+getCursorJoins = function (cursor) {
+  var collection = Mongo.Collection.get(cursor._getCollectionName());
+  return getCollectionJoins(collection);
 };
 
 var findOneById = function (collection, fieldName) {
@@ -54,10 +62,13 @@ Mongo.Collection.prototype.findAndJoin = function (selector, options) {
           value = [value];
         }
 
-        doc[field.name] = field.collection.find(
+        doc[field.name] = field.collection.findAndJoin(
                             { _id: { $in: value } }).fetch();
       } else {
-        doc[field.name] = field.collection.findOne({ _id: value });
+        var findOneResult = field.collection.findAndJoin({ _id: value }, { limit: 1 });
+        if (findOneResult.length == 1) {
+          doc[field.name] = findOneResult[0];
+        }
       }
     });
     return doc;

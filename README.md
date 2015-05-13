@@ -90,7 +90,7 @@ var myPosts = Posts.findAndJoin({ owner: Meteor.userId() });
 ## TODO ##
 
 - [ ] Tests
-- [ ] Publish and join fields of children docs. Currently only collection fields are published and joined
+- [x] Publish and join fields of children docs. Currently only collection fields are published and joined
 - [ ] Allow to specify which fields of joined documents to publish
 - [ ] Allow to specify the custom find method on schema and publication level
 - [ ] Extra join methods (`findByField`)

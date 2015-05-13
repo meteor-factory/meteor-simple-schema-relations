@@ -5,7 +5,7 @@ Meteor.publishSchema = function (name, fn) {
       find: function () {
         return cursor;
       },
-      children: compositeSchemaChildrenArray(cursor)
+      children: compositeSchemaChildrenArray(cursor, true)
     }
   });
 };
@@ -26,16 +26,23 @@ var findManyById = function (collection, fieldName) {
   };
 };
 
-function compositeSchemaChildrenArray (cursor) {
-  var fields = getCursorJoins(cursor);
+function compositeSchemaChildrenArray (cursorOrCollection, isCursor) {
+  var fields = isCursor
+                ? getCursorJoins(cursorOrCollection)
+                : getCollectionJoins(cursorOrCollection);
   var children = [];
 
   _.each(fields, function (field) {
+    var compositeChildren = {};
+
     if (field.isArray) {
-      children.push({ find: findManyById(field.collection, field.name) });
+      compositeChildren.find = findManyById(field.collection, field.name);
     } else {
-      children.push({ find: findOneById(field.collection, field.name) });
+      compositeChildren.find = findOneById(field.collection, field.name);
     }
+
+    compositeChildren.children = compositeSchemaChildrenArray(field.collection);
+    children.push(compositeChildren);
   });
 
   return children;
