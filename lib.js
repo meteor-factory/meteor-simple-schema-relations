@@ -1,5 +1,5 @@
 SimpleSchema.extendOptions({
-  findById: Match.Optional(Mongo.Collection)
+  joinById: Match.Optional(Mongo.Collection)
 });
 
 var ssFieldIsArray = function (field) {

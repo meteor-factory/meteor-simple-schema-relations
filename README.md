@@ -11,7 +11,7 @@ At the moment you can install the package by cloning the repo to local `packages
 
 ## Usage ##
 
-You can define one-to-one and one-to-many relations using `findById` property in your schema, e.g.:
+You can define one-to-one and one-to-many relations using `joinById` property in your schema, e.g.:
 
 ```
 Posts = new Mongo.Collection('Posts');
@@ -34,14 +34,14 @@ PostsSchema = new SimpleSchema({
       }
     },
 
-    findById: Meteor.users
+    joinById: Meteor.users
   },
 
   collaborators: {
     type: [String],
     regEx: SimpleSchema.RegEx.Id,
 
-    findById: Meteor.users
+    joinById: Meteor.users
   }
 })
 ```
@@ -96,7 +96,7 @@ var myPosts = Posts.findAndJoin({ owner: Meteor.userId() });
 - [ ] Extra join methods (`findByField`)
 - [ ] Think of better names
   - [ ] Meteor.publishSchema -> Meteor.publishRelations || Meteor.publishAndJoin ??
-  - [ ] findById -> joinById ??
+  - [x] findById -> joinById ??
 - [ ] Custom `children` properties in publication method (see `reywood:publish-composite`)
 - [ ] Return "normal" cursor to have `count()` and `observe()` etc. (Low priority)
 
