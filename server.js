@@ -16,7 +16,7 @@ var findOneById = function (collection, fieldName, fields) {
   };
 };
 
-var findManyById = function (collection, fieldName) {
+var findManyById = function (collection, fieldName, fields) {
   return function (doc) {
     if (! _.isArray(doc[fieldName])) {
       doc[fieldName] = [doc[fieldName]];
