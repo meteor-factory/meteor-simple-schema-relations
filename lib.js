@@ -19,10 +19,10 @@ getSimpleSchemaJoins = function (schema) {
                     ? ssFieldIsString(schema[name + '.$'])
                     : ssFieldIsString(schema[name]);
 
-    if (field.findById && isString) {
+    if (field.joinById && isString) {
       result.push({
         name: name,
-        collection: field.findById,
+        collection: field.joinById,
         isArray: ssFieldIsArray(field)
       });
     }
