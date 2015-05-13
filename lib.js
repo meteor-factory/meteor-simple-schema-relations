@@ -34,20 +34,46 @@ getCollectionJoins = function (collection) {
   if (collection && collection._c2 && collection._c2._simpleSchema) {
     return getSimpleSchemaJoins(collection._c2._simpleSchema._schema);
   }
-}
+};
 
 getCursorJoins = function (cursor) {
   var collection = Mongo.Collection.get(cursor._getCollectionName());
   return getCollectionJoins(collection);
 };
 
+getOmitFields = function (fields) {
+  return _.reduce(fields, function (omit, include, field) {
+    if (! include) {
+      var arr = field.split('.');
+      var rest = _.rest(arr);
+
+      if (rest.length > 0) {
+        if (! omit[arr[0]]) {
+          omit[arr[0]] = {};
+        }
+        omit[arr[0]][rest.join('.')] = 0;
+      }
+    }
+    return omit;
+  }, {});
+};
+
+getCursorOmitFields = function (cursor) {
+  var fields = Meteor.isClient
+                ? cursor.fields
+                : cursor._cursorDescription.options.fields;
+  return getOmitFields(fields);
+};
+
 Mongo.Collection.prototype.findAndJoin = function (selector, options) {
   var cursor = this.find.apply(this, Array.prototype.slice.call(arguments));
   var fields = getCursorJoins(cursor);
+  var omitFields = getCursorOmitFields(cursor);
   
   return cursor.map(function (doc) {
     _.each(fields, function (field) {
       var value = doc[field.name];
+      var fields = omitFields[field.name];
 
       if (field.isArray) {
         if (! _.isArray(value)) {
@@ -55,9 +81,12 @@ Mongo.Collection.prototype.findAndJoin = function (selector, options) {
         }
 
         doc[field.name] = field.collection.findAndJoin(
-                            { _id: { $in: value } }).fetch();
+                            { _id: { $in: value } },
+                            { fields: fields });
       } else {
-        var findOneResult = field.collection.findAndJoin({ _id: value }, { limit: 1 });
+        var findOneResult = field.collection.findAndJoin(
+                              { _id: value }, 
+                              { limit: 1, fields: fields });
         if (findOneResult.length == 1) {
           doc[field.name] = findOneResult[0];
         }

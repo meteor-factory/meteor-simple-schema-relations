@@ -10,9 +10,9 @@ Meteor.publishAndJoin = function (name, fn) {
   });
 };
 
-var findOneById = function (collection, fieldName) {
+var findOneById = function (collection, fieldName, fields) {
   return function (doc) {
-    return collection.find({ _id: doc[fieldName] }, { limit: 1 });
+    return collection.find({ _id: doc[fieldName] }, { limit: 1, fields: fields });
   };
 };
 
@@ -22,26 +22,36 @@ var findManyById = function (collection, fieldName) {
       doc[fieldName] = [doc[fieldName]];
     }
 
-    return collection.find({ _id: { $in: doc[fieldName] } });
+    return collection.find({ _id: { $in: doc[fieldName] } }, { fields: fields });
   };
 };
 
-function compositeSchemaChildrenArray (cursorOrCollection, isCursor) {
+function compositeSchemaChildrenArray (cursorOrCollection, isCursor, omitFields) {
   var fields = isCursor
                 ? getCursorJoins(cursorOrCollection)
                 : getCollectionJoins(cursorOrCollection);
   var children = [];
 
+  if ((! omitFields) && isCursor) {
+    omitFields = getCursorOmitFields(cursorOrCollection);
+  }
+
   _.each(fields, function (field) {
     var compositeChildren = {};
+    var fields;
 
-    if (field.isArray) {
-      compositeChildren.find = findManyById(field.collection, field.name);
-    } else {
-      compositeChildren.find = findOneById(field.collection, field.name);
+    if (omitFields && omitFields[field.name]) {
+      fields = omitFields[field.name];
     }
 
-    compositeChildren.children = compositeSchemaChildrenArray(field.collection);
+    if (field.isArray) {
+      compositeChildren.find = findManyById(field.collection, field.name, fields);
+    } else {
+      compositeChildren.find = findOneById(field.collection, field.name, fields);
+    }
+
+    compositeChildren.children = compositeSchemaChildrenArray(
+                                  field.collection, false, getOmitFields(fields));
     children.push(compositeChildren);
   });
 
