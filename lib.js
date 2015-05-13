@@ -41,14 +41,6 @@ getCursorJoins = function (cursor) {
   return getCollectionJoins(collection);
 };
 
-var findOneById = function (collection, fieldName) {
-  return collection.findOne({ _id: doc[fieldName] });
-};
-
-var findManyById = function (collection, fieldName) {
-  return collection.find({ _id: { $in: doc[fieldName] } }).fetch();
-};
-
 Mongo.Collection.prototype.findAndJoin = function (selector, options) {
   var cursor = this.find.apply(this, Array.prototype.slice.call(arguments));
   var fields = getCursorJoins(cursor);
